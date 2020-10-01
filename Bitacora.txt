@@ -1,0 +1,106 @@
+Bitacora de versiones
+---------------------
+
+
+ -----------------------------------------------------------------------
+Version 3.0.2.k ( MASTER ) @ 2020-07-02
+1-ERR: En  frtos_uart_ioctl al borrar el TXbuffer estaba borrando el RXbuffer.
+2-WARN: En el frtos_io no uso los semaforos de los uart ya que los pase al printf asi que
+  los elimino.
+3-WARN: modifico xfputChar para que escriba directamente con frtos_write.
+4-WARN: agrego un control por semaforo a xnprint.
+5-Al prender el modem, si no puedo leer el imei o el ccid doy error y salgo.
+6-AT+IPADDR
+  +IADDR: 10.204.2.106
+  GPRS: ERROR: ip no asignada !!.
+  El problema esta que en vez de responder IPADDR respondio IADDR !!!
+7-Agrego que al comenzar a configurar el modem muestro su identificacion y version.
+8-Modifico la rutina de gprs_net_connect() para tener c/paso bien diferenciado
+9-En gprs_netopen() agrego un NETCLOSE previo y cuando da error para resetear
+  todas las condiciones del modem.
+ ------------------------------------------------------------------------
+Version 3.0.2.j ( MASTER ) @ 2020-06-29
+1- En el scan, antes de ver si necesito hacerlo seteo las variables server_script
+   y esto hace que no use las que tengo configuradas.
+2- Al calcular los hases de configuracion, en alguno casos se puede llegar
+   a usar mas tamaño del buffer.
+   Se redimensionan los buffer y se controla el overflow.
+ ------------------------------------------------------------------------
+ Version 3.0.2.i ( MASTER ) @ 2020-06-25
+  Problema:
+  Vemos que hay momentos en que se transmiten mensajes vacios o cortados
+  y que ciertos comandos del GPRS quedan en blanco.
+  Solucion:
+  En las rutinas del driver de uart, al definir los ringbuffers poniamos 
+  los txringbuffers size en RXSTORAGE_SIZE con lo cual en el caso del GPRS
+  el TXringbuffer definido estatico de 128 bytes quedaba con 512 bytes.
+  Esto hacia que al borrarlo con memset, se sobreescribieran mas posiciones
+  de memoria ( mem_r5_3_0_2_h.xlsx ).
+  En particular se le pasa por arriba a 'uart_gprs'.
+ ------------------------------------------------------------------------
+ Version 3.0.2.h ( MASTER ) @ 2020-06-24
+1- Con cierta combinacion de datos se procesa la senal de frames entre que
+   envio los datos y que llega la respuesta por lo que el dlg. sale de esperar
+   la respuesta y se pierde, por lo que se llena la memoria.
+   Sol: Modifico el procesamiento de las senales de modo que en st_dataframe ignoro
+   la senal de data_frame_ready.
+ ------------------------------------------------------------------------
+Version 3.0.2.g ( MASTER ) @ 2020-06-22
+Se detectaron 3 problemas:
+1- Hay veces que en los frames de inits, se loguean como correctos pero
+   al server SPY ( y apache ) llegan menos campos. ( Counters, psensor, etc)
+   H) El buffer de printf es de 256b pero el del gprs_uart de 128b.
+   Cuando el micro usa xprintf_PVD, saco los datos en el TERM sin problemas ya que no hay control de flujo
+   en cambio parece que hay veces que al sacarlos por el modem si.
+   Da la impresion que el modem queda sobreescrito. No pasa con DATAFRAME porque entre
+   c/frame espero 250ms que se vacie.
+   Suponemos que puede haber veces que el wireless se conecte con baja calidad y entonces
+   no pueda evacuar los datos a la velocidad que llegan por la uart.
+   Este problema solo se da en los frames de INIT GLOBAL que son de largo 212 bytes.
+   Hago lo mismo en los frames de INIT que en los DATAFRAMES: agrego una espera para que los buffers se vacien.
+   Al mandar un frame de INIT GLOBAL incoporo delays entre las partes del frame.
+   Otra opcion es manejar control de flujo con RTS/CTS.
+   
+2- Error de CPIN.
+   El micro responde al AT pero deja de responder al CPIN.
+   En caso que sea porque algo quedo bloqueando las respuestas ( no lo se ), incorporo un reset.
+   Agrego que al dar errores de comunicaciones y esperar, luego de la espera esetea al micro.
+   
+3- Error de SCAN
+   En los SCAN se va por timeout de comms.
+   COMMS: GPRS_SCAN SCRIPT ERROR !!.
+   Luego del TO comms, hace un load default y queda siempre con el error
+   ERROR: Checksum sVarsComms failed: calc[0x83], sto[0x82].
+   No puede recuperarse.
+   El problema estaba en el server que en la funcion check_auth ponia los UID en 0 entonces
+   luego no podia recuperarse.
+   Aumento tambien el watchdog a 600s.
+
+------------------------------------------------------------------------
+Version 3.0.2.f ( MASTER ) @ 2020-06-16
+1) Incorporo un contador de errores de comunicaciones que se va incrementando
+   Luego de un limite, se resetea el micro.
+   Si logro llegar a inicializarme, reseteo el contador a 0.
+2) En c/estado muestro el valor del contador junto al valor del gprs prendido/inicializado
+   
+------------------------------------------------------------------------
+Version 3.0.2.e ( MASTER ) @ 2020-06-15
+1) En gprs_CPIN hago una espera progresiva aumentando el tiempo c/ciclo
+
+------------------------------------------------------------------------
+Version 3.0.2.d ( MASTER ) @ 2020-06-11
+
+1) Cambio chequeo del PIN (gprs_CPIN) y solo verifico que lo tenga instalado: READY.
+   Dejo de chequear el valor del pin.
+2) Agrego en todos los estados del tkComms mostrar a la entrada / salida los valores de gprs prendido/inicializado
+3) Los SMS los chequeo solo en aplicacion PLANTAPOT de modo de no interactuar con el SIM si no es necesario.
+4) Hago la funcion gprs_SAT_set(). Se corre solo en modo comando.
+   Permite habilitar/deshabilitar el STK del pin que es lo que suponemos
+   nos esta bloqueando a veces el sim.
+5) Agrego un control en el formato del RTC recibido en el INIT.
+   En un caso el server transmitio un valor de RTC mas corto y esto genero
+   que la hora se configurara mal y entonces quedo dentro del pwrsave.
+   Ahora si no es un formato correcto no se graba.
+6) En status, gprs state muestro el valor de gprs prendido/inicializado.
+
+------------------------------------------------------------------------

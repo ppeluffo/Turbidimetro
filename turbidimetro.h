@@ -64,8 +64,8 @@
 //------------------------------------------------------------------------------------
 // DEFINES
 //------------------------------------------------------------------------------------
-#define SPX_FW_REV "1.0.0a"
-#define SPX_FW_DATE "@ 20201001"
+#define SPX_FW_REV "1.0.0"
+#define SPX_FW_DATE "@ 20201002"
 
 #define SPX_HW_MODELO "spxR5 HW:xmega256A3B R1.1"
 #define SPX_FTROS_VERSION "FW:FRTOS10 Turbidimetro"
@@ -107,6 +107,11 @@ void tkCmd(void * pvParameters);
 void initMCU(void);
 void u_configure_systemMainClock(void);
 void u_configure_RTC32(void);
+
+void turbidimetro_config(void);
+void turbidimetro_medir( bool f_debug );
+void td_prender_led(void);
+void td_apagar_led(void);
 
 //------------------------------------------------------------------------
 

@@ -23,6 +23,7 @@ static void cmdWriteFunction(void);
 static void cmdReadFunction(void);
 static void cmdStatusFunction(void);
 static void cmdConfigFunction(void);
+static void cmdMedirFunction(void);
 
 RtcTimeType_t rtc;
 
@@ -51,6 +52,7 @@ uint8_t ticks = 0;
 	FRTOS_CMD_register( "help\0", cmdHelpFunction );
 	FRTOS_CMD_register( "status\0", cmdStatusFunction );
 	FRTOS_CMD_register( "config\0", cmdConfigFunction );
+	FRTOS_CMD_register( "medir\0", cmdMedirFunction );
 
 	// Fijo el timeout del READ
 	ticks = 5;
@@ -73,6 +75,19 @@ uint8_t ticks = 0;
 		}
 
 	}
+}
+//------------------------------------------------------------------------------------
+static void cmdMedirFunction(void)
+{
+
+	FRTOS_CMD_makeArgv();
+
+	if ( strcmp_P( strupr(argv[1]), PSTR("DEBUG")) == 0) {
+		turbidimetro_medir(true);
+	} else {
+		turbidimetro_medir(false);
+	}
+	pv_snprintfP_OK();
 }
 //------------------------------------------------------------------------------------
 static void cmdStatusFunction(void)
@@ -105,6 +120,26 @@ static void cmdWriteFunction(void)
 {
 
 	FRTOS_CMD_makeArgv();
+
+	// emmiter {on|off}
+	if ( strcmp_P( strupr(argv[1]), PSTR("EMMITER")) == 0) {
+
+		if ( strcmp_P( strupr(argv[2]), PSTR("ON\0")) == 0 ) {
+			td_prender_led();
+			pv_snprintfP_OK();
+			return;
+		}
+
+		if ( strcmp_P( strupr(argv[2]), PSTR("OFF\0")) == 0 ) {
+			td_apagar_led();
+			pv_snprintfP_OK();
+			return;
+		}
+
+		xprintf_P( PSTR("cmd ERROR: ( emmiter {on|off} )\r\n\0"));
+		pv_snprintfP_ERR();
+		return;
+	}
 
 	// CMD NOT FOUND
 	xprintf_P( PSTR("ERROR\r\nCMD NOT DEFINED\r\n\0"));
@@ -146,7 +181,9 @@ static void cmdHelpFunction(void)
 	// HELP WRITE
 	if (!strcmp_P( strupr(argv[1]), PSTR("WRITE\0"))) {
 		xprintf_P( PSTR("-write\r\n\0"));
-		xprintf_P( PSTR("  rtc YYMMDDhhmm\r\n\0"));
+		xprintf_P( PSTR("  rtc YYMMDDhhmm\r\n"));
+
+		xprintf_P( PSTR("  emmiter {on|off}\r\n"));
 		return;
 	}
 
@@ -184,6 +221,7 @@ static void cmdHelpFunction(void)
 		xprintf_P( PSTR("-write...\r\n\0"));
 		xprintf_P( PSTR("-read...\r\n\0"));
 		xprintf_P( PSTR("-config...\r\n\0"));
+		xprintf_P( PSTR("-medrir {debug}r\n\0"));
 
 	}
 

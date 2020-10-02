@@ -15,6 +15,7 @@ int main( void )
 	WDT_Disable();
 
 	initMCU();
+	turbidimetro_config();
 
 	// Inicializacion de los devices del frtos-io
 	frtos_open(fdTERM, 115200 );

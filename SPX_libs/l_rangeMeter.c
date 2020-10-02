@@ -224,6 +224,7 @@ uint8_t items = 0;
 // El ANCHO DEL PULSO SE MIDE EN EL PIN UPULSE_WIDTH.
 // Tenemos una interrupcion de flanco.
 //
+/*
 ISR( PORTC_INT0_vect )
 {
 	// Detectamos cual flanco disparo la interrupcion.
@@ -251,4 +252,5 @@ ISR( PORTC_INT0_vect )
 	PORTC.INTFLAGS = PORT_INT0IF_bm;
 
 }
+*/
 //------------------------------------------------------------------------------------

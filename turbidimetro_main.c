@@ -1,6 +1,24 @@
 /*
  * main.c
  *
+ *  avrdude -v -Pusb -c avrispmkII -p x256a3 -F -e -U flash:w:spxR4.hex
+ *  avrdude -v -Pusb -c avrispmkII -p x256a3 -F -e
+ *
+ *  REFERENCIA: /usr/lib/avr/include/avr/iox256a3b.h
+ *
+ *  El watchdog debe estar siempre prendido por fuses.
+ *  FF 0A FD __ F5 D4
+ *
+ *  PROGRAMACION FUSES:
+ *  /usr/bin/avrdude -px256a3b -cavrispmkII -Pusb -u -Uflash:w:spx.hex:a -Ufuse0:w:0xff:m -Ufuse1:w:0x0:m -Ufuse2:w:0xff:m -Ufuse4:w:0xff:m -Ufuse5:w:0xff:m
+ *  /usr/bin/avrdude -px256a3b -cavrispmkII -Pusb -u -Ufuse0:w:0xff:m -Ufuse1:w:0x0:m -Ufuse2:w:0xff:m -Ufuse4:w:0xff:m -Ufuse5:w:0xff:m
+ *
+ *  /usr/bin/avrdude -px256a3b -cavrispmkII -Pusb -Uflash:w:/home/pablo/Spymovil/workspace/spxR5/Release/spxR5.hex:a
+ *  /usr/bin/avrdude -p x256a3b -P /dev/ttyUSB0 -b 9600 -c avr109 -v -v -e -V -Uflash:w:/home/pablo/Spymovil/workspace/spxR5/Release/spxR5.hex
+ *
+ *  Para ver el uso de memoria usamos
+ *  avr-nm -n spxR5.elf | more
+ *  avr-nm -Crtd --size-sort spxR5.elf | grep -i ' [dbv] '
  */
 
 #include "turbidimetro.h"
@@ -15,7 +33,6 @@ int main( void )
 	WDT_Disable();
 
 	initMCU();
-	turbidimetro_config();
 
 	// Inicializacion de los devices del frtos-io
 	frtos_open(fdTERM, 115200 );

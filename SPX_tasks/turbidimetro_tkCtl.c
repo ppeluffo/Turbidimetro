@@ -87,6 +87,9 @@ static void pv_ctl_init_system(void)
 	// Arranco el RTC. Si hay un problema lo inicializo.
 	RTC_init();
 
+	ainputs_init();
+	turbidimetro_config();
+
 	// Habilito a arrancar al resto de las tareas
 	startTask = true;
 

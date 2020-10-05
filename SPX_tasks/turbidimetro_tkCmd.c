@@ -151,6 +151,27 @@ static void cmdReadFunction(void)
 
 	FRTOS_CMD_makeArgv();
 
+	 //read ach {0..5}
+	if ( !strcmp_P( strupr(argv[1]), PSTR("ACH\0") ) ) {
+		ainputs_read_channel( atoi(argv[2]));
+		return;
+	}
+
+	// read corriente
+	if ( !strcmp_P( strupr(argv[1]), PSTR("CORRIENTE\0") ) ) {
+		ainputs_read_channel(0);
+		return;
+	}
+
+	// INA
+	// read ina id regName
+	if ( !strcmp_P( strupr(argv[1]), PSTR("INA\0") ) ) {
+		ainputs_awake();
+		INA_test_read ( argv[2], argv[3] );
+		ainputs_sleep();
+		return;
+	}
+
 	// CMD NOT FOUND
 	xprintf_P( PSTR("ERROR\r\nCMD NOT DEFINED\r\n\0"));
 	return;
@@ -191,6 +212,8 @@ static void cmdHelpFunction(void)
 	else if (!strcmp_P( strupr(argv[1]), PSTR("READ\0"))) {
 		xprintf_P( PSTR("-read\r\n\0"));
 		xprintf_P( PSTR("  rtc, fuses\r\n\0"));
+		xprintf_P( PSTR("  ach {0..5}\r\n"));
+		xprintf_P( PSTR("  corriente\r\n"));
 		return;
 
 	}

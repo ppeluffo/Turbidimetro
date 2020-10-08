@@ -80,14 +80,18 @@ uint8_t ticks = 0;
 static void cmdMedirFunction(void)
 {
 
-	FRTOS_CMD_makeArgv();
+uint16_t samples = 0;
 
-	if ( strcmp_P( strupr(argv[1]), PSTR("DEBUG")) == 0) {
-		turbidimetro_medir(true);
+	FRTOS_CMD_makeArgv();
+	if ( argv[1] == NULL ) {
+		samples = 1;
 	} else {
-		turbidimetro_medir(false);
+		samples = atoi( argv[1]);
 	}
+
+	turbidimetro_medir(true, samples);
 	pv_snprintfP_OK();
+	return;
 }
 //------------------------------------------------------------------------------------
 static void cmdStatusFunction(void)
@@ -125,13 +129,13 @@ static void cmdWriteFunction(void)
 	if ( strcmp_P( strupr(argv[1]), PSTR("EMMITER")) == 0) {
 
 		if ( strcmp_P( strupr(argv[2]), PSTR("ON\0")) == 0 ) {
-			td_prender_led();
+			turbidimetro_prender_led();
 			pv_snprintfP_OK();
 			return;
 		}
 
 		if ( strcmp_P( strupr(argv[2]), PSTR("OFF\0")) == 0 ) {
-			td_apagar_led();
+			turbidimetro_apagar_led();
 			pv_snprintfP_OK();
 			return;
 		}
@@ -230,6 +234,10 @@ static void cmdHelpFunction(void)
 		xprintf_P( PSTR("-config\r\n\0"));
 	}
 
+	// HELP MEDIR
+	else if (!strcmp_P( strupr(argv[1]), PSTR("MEDIR\0"))) {
+		xprintf_P( PSTR("-medir {samples}\r\n\0"));
+	}
 
 	else {
 
@@ -244,7 +252,7 @@ static void cmdHelpFunction(void)
 		xprintf_P( PSTR("-write...\r\n\0"));
 		xprintf_P( PSTR("-read...\r\n\0"));
 		xprintf_P( PSTR("-config...\r\n\0"));
-		xprintf_P( PSTR("-medrir {debug}r\n\0"));
+		xprintf_P( PSTR("-medir...r\n\0"));
 
 	}
 
